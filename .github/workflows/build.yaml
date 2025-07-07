@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       u_boot_version:
-        description: 'U-Boot version (default: v2024.01)'
+        description: 'U-Boot version tag (default: v2024.01)'
         required: false
         default: 'v2024.01'
         type: string
@@ -16,13 +16,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 0  # Полная история для работы с тегами
 
     - name: Checkout tag version
       run: |
-        git fetch --tags
-        # Явно указываем, что это тег
-        git checkout tags/${{ github.event.inputs.u_boot_version || 'v2024.01' }} -b build-${{ github.event.inputs.u_boot_version || 'v2024.01' }}
+        git fetch --tags --force
+        TAG=${{ github.event.inputs.u_boot_version || 'v2024.01' }}
+        
+        # 1. Сначала переходим на тег (detached HEAD)
+        git checkout "refs/tags/${TAG}"
+        
+        # 2. Создаем локальную ветку для сборки
+        git checkout -b "build-${TAG}"
+        
+        # Проверяем, что все получилось
+        git branch -v
+        git describe --tags
 
     - name: Download RK3568 binaries
       run: |
