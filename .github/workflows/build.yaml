@@ -13,32 +13,6 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-    - name: Checkout repository with tags
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        ref: ${{ github.event.inputs.u_boot_version || 'v2024.01' }}
-        # Важно: включаем загрузку тегов
-        fetch-tags: true
-
-    - name: Verify tag checkout
-      run: |
-        TAG=${{ github.event.inputs.u_boot_version || 'v2024.01' }}
-        
-        # Проверяем что мы на нужном теге
-        CURRENT_TAG=$(git describe --tags --exact-match HEAD 2>/dev/null)
-        
-        if [ "$CURRENT_TAG" != "$TAG" ]; then
-          echo "Error: Not on tag $TAG (currently at $CURRENT_TAG)"
-          exit 1
-        fi
-        
-        # Создаем временную ветку для сборки
-        git checkout -b "build-${TAG}"
-        
-        echo "Successfully checked out tag $TAG"
-        git log -1 --pretty=format:'%h %s'
-
     - name: Download RK3568 binaries
       run: |
         wget https://github.com/rockchip-linux/rkbin/raw/master/bin/rk35/rk3568_ddr_1560MHz_v1.23.bin
