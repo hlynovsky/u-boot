@@ -18,10 +18,11 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Checkout selected version
+    - name: Checkout tag version
       run: |
         git fetch --tags
-        git checkout ${{ github.event.inputs.u_boot_version || 'v2024.01' }}
+        # Явно указываем, что это тег
+        git checkout tags/${{ github.event.inputs.u_boot_version || 'v2024.01' }} -b build-${{ github.event.inputs.u_boot_version || 'v2024.01' }}
 
     - name: Download RK3568 binaries
       run: |
