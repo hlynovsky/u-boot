@@ -13,25 +13,31 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-    - name: Checkout repository
+    - name: Checkout repository with tags
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Полная история для работы с тегами
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.u_boot_version || 'v2024.01' }}
+        # Важно: включаем загрузку тегов
+        fetch-tags: true
 
-    - name: Checkout tag version
+    - name: Verify tag checkout
       run: |
-        git fetch --tags --force
         TAG=${{ github.event.inputs.u_boot_version || 'v2024.01' }}
         
-        # 1. Сначала переходим на тег (detached HEAD)
-        git checkout "refs/tags/${TAG}"
+        # Проверяем что мы на нужном теге
+        CURRENT_TAG=$(git describe --tags --exact-match HEAD 2>/dev/null)
         
-        # 2. Создаем локальную ветку для сборки
+        if [ "$CURRENT_TAG" != "$TAG" ]; then
+          echo "Error: Not on tag $TAG (currently at $CURRENT_TAG)"
+          exit 1
+        fi
+        
+        # Создаем временную ветку для сборки
         git checkout -b "build-${TAG}"
         
-        # Проверяем, что все получилось
-        git branch -v
-        git describe --tags
+        echo "Successfully checked out tag $TAG"
+        git log -1 --pretty=format:'%h %s'
 
     - name: Download RK3568 binaries
       run: |
